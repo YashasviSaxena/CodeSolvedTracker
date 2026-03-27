@@ -23,5 +23,20 @@ Thumbs.db
 *.log
 logs/
 
-# Test results
-TestResults/
+# Backup files
+*.backup
+*.bak
+
+# Compressed files
+*.gz
+*.br
+
+# Test files
+test.html
+index_blazor.html
+
+# Model files
+model.zip
+
+# HTTP files
+*.http
