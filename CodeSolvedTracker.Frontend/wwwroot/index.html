@@ -81,20 +81,19 @@
     </div>
 
     <script>
-        const apiUrl = 'http://localhost:5173';
+        // UPDATED: Using your live Render API URL
+        const apiUrl = 'https://codesolvedtracker.onrender.com';
         
         async function loadDashboard() {
             try {
-                // Fetch dashboard data
+                console.log('Calling API:', apiUrl + '/api/stats/dashboard');
                 const response = await fetch(apiUrl + '/api/stats/dashboard');
                 const data = await response.json();
                 
-                // Update stats
                 document.getElementById('totalSolved').innerHTML = data.totalSolved;
                 document.getElementById('successRate').innerHTML = data.successRate.toFixed(1) + '%';
                 document.getElementById('categoriesCount').innerHTML = data.byCategory.length;
                 
-                // Build categories HTML
                 let categoriesHtml = '';
                 for (let cat of data.byCategory) {
                     let percentage = Math.min((cat.count / 100) * 100, 100);
@@ -110,7 +109,6 @@
                 }
                 document.getElementById('categories').innerHTML = categoriesHtml;
                 
-                // Fetch skill gap
                 const skillResponse = await fetch(apiUrl + '/api/predictions/skill-gap');
                 const skillData = await skillResponse.json();
                 
@@ -127,9 +125,8 @@
                 skillHtml += '<div id="practicePlan" class="mt-3"></div>';
                 document.getElementById('skillGap').innerHTML = skillHtml;
                 
-                // Build recent activity table
                 let activityHtml = '<table class="table table-striped">';
-                activityHtml += '<thead><tr><th>Problem</th><th>Date</th><th>Status</th></tr></thead><tbody>';
+                activityHtml += '<thead>乳<th>Problem</th><th>Date</th><th>Status</th></thead><tbody>';
                 for (let act of data.recentActivity.slice(0, 10)) {
                     let statusClass = act.status === 'Accepted' ? 'badge bg-success' : 'badge bg-danger';
                     let date = new Date(act.solvedAt).toLocaleString();
@@ -144,7 +141,7 @@
                 
             } catch (error) {
                 console.error('Error:', error);
-                document.getElementById('categories').innerHTML = '<div class="alert alert-danger">⚠️ Cannot connect to API. Make sure it\'s running on port 5173</div>';
+                document.getElementById('categories').innerHTML = '<div class="alert alert-danger">⚠️ Cannot connect to API. Make sure it\'s running at ' + apiUrl + '</div>';
                 document.getElementById('skillGap').innerHTML = '<div class="alert alert-danger">⚠️ API connection failed</div>';
                 document.getElementById('recentActivity').innerHTML = '<div class="alert alert-danger">⚠️ Cannot load activity data</div>';
             }
@@ -176,10 +173,7 @@
             }
         }
         
-        // Load dashboard when page loads
         loadDashboard();
-        
-        // Auto-refresh every 30 seconds
         setInterval(loadDashboard, 30000);
     </script>
 </body>
