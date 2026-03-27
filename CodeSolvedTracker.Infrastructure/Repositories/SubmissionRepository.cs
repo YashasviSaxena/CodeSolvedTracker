@@ -13,9 +13,10 @@ public class SubmissionRepository : ISubmissionRepository
         _context = context;
     }
     
-    public async Task<List<Submission>> GetAllAsync()
+    public async Task<List<Submission>> GetAllAsync(int userId)
     {
         return await _context.Submissions
+            .Where(s => s.UserId == userId)
             .OrderByDescending(s => s.SubmittedAt)
             .ToListAsync();
     }
@@ -32,9 +33,12 @@ public class SubmissionRepository : ISubmissionRepository
         await _context.SaveChangesAsync();
     }
     
-    public async Task<DashboardData> GetDashboardDataAsync()
+    public async Task<DashboardData> GetDashboardDataAsync(int userId)
     {
-        var submissions = await _context.Submissions.ToListAsync();
+        var submissions = await _context.Submissions
+            .Where(s => s.UserId == userId)
+            .ToListAsync();
+            
         var accepted = submissions.Where(s => s.Status == "Accepted").ToList();
         
         return new DashboardData
@@ -63,9 +67,11 @@ public class SubmissionRepository : ISubmissionRepository
         };
     }
     
-    public async Task<Dictionary<string, double>> GetCategoryStatsAsync()
+    public async Task<Dictionary<string, double>> GetCategoryStatsAsync(int userId)
     {
-        var submissions = await _context.Submissions.ToListAsync();
+        var submissions = await _context.Submissions
+            .Where(s => s.UserId == userId)
+            .ToListAsync();
         
         return submissions
             .GroupBy(s => s.ProblemCategory)

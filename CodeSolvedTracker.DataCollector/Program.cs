@@ -3,6 +3,7 @@ using CodeSolvedTracker.Infrastructure.Data;
 using CodeSolvedTracker.Infrastructure.Repositories;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using BCrypt.Net;
 
 namespace CodeSolvedTracker.DataCollector;
 
@@ -18,14 +19,40 @@ class Program
         services.AddScoped<ISubmissionRepository, SubmissionRepository>();
         
         var serviceProvider = services.BuildServiceProvider();
+        var context = serviceProvider.GetRequiredService<AppDbContext>();
         var repository = serviceProvider.GetRequiredService<ISubmissionRepository>();
         
-        var submissions = GenerateMockData();
-        await repository.AddRangeAsync(submissions);
+        // Create default user if not exists
+        var defaultUser = await context.Users.FirstOrDefaultAsync(u => u.Username == "demo");
+        if (defaultUser == null)
+        {
+            defaultUser = new User
+            {
+                Username = "demo",
+                Email = "demo@example.com",
+                PasswordHash = BCrypt.HashPassword("demo123"),
+                CreatedAt = DateTime.UtcNow
+            };
+            context.Users.Add(defaultUser);
+            await context.SaveChangesAsync();
+            Console.WriteLine("Created default user: demo / demo123");
+        }
         
-        Console.WriteLine($"Added {submissions.Count} submissions to database!");
+        // Check if user already has submissions
+        var existingSubmissions = await context.Submissions.CountAsync(s => s.UserId == defaultUser.Id);
+        if (existingSubmissions > 0)
+        {
+            Console.WriteLine($"User already has {existingSubmissions} submissions. Skipping seed.");
+            return;
+        }
         
-        var stats = await repository.GetDashboardDataAsync();
+        var submissions = GenerateMockData(defaultUser.Id);
+        await context.Submissions.AddRangeAsync(submissions);
+        await context.SaveChangesAsync();
+        
+        Console.WriteLine($"Added {submissions.Count} submissions for user {defaultUser.Username}!");
+        
+        var stats = await repository.GetDashboardDataAsync(defaultUser.Id);
         Console.WriteLine($"\nDashboard Stats:");
         Console.WriteLine($"Total Solved: {stats.TotalSolved}");
         Console.WriteLine($"Success Rate: {stats.SuccessRate:F1}%");
@@ -36,7 +63,7 @@ class Program
         }
     }
     
-    static List<Submission> GenerateMockData()
+    static List<Submission> GenerateMockData(int userId)
     {
         var categories = new[] { "Arrays", "Strings", "DP", "Graphs", "Trees", "Hash Tables", "Linked Lists" };
         var difficulties = new[] { "Easy", "Medium", "Hard" };
@@ -63,6 +90,7 @@ class Program
             
             submissions.Add(new Submission
             {
+                UserId = userId,
                 Platform = "LeetCode",
                 ProblemId = $"problem_{i}",
                 ProblemTitle = $"{category} Problem {random.Next(1, 100)}",

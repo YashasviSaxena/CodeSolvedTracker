@@ -1,8 +1,11 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
 using CodeSolvedTracker.Infrastructure.Services;
 
 namespace CodeSolvedTracker.API.Controllers;
 
+[Authorize]
 [ApiController]
 [Route("api/[controller]")]
 public class PredictionsController : ControllerBase
@@ -14,17 +17,31 @@ public class PredictionsController : ControllerBase
         _predictionService = predictionService;
     }
     
+    private int GetCurrentUserId()
+    {
+        var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        return int.TryParse(userIdClaim, out int userId) ? userId : 0;
+    }
+    
     [HttpGet("skill-gap")]
     public async Task<IActionResult> GetSkillGap()
     {
-        var result = await _predictionService.GetSkillGapAsync();
+        var userId = GetCurrentUserId();
+        if (userId == 0)
+            return Unauthorized();
+            
+        var result = await _predictionService.GetSkillGapAsync(userId);
         return Ok(result);
     }
     
     [HttpGet("practice-plan")]
     public async Task<IActionResult> GetPracticePlan()
     {
-        var result = await _predictionService.GetPracticePlanAsync();
+        var userId = GetCurrentUserId();
+        if (userId == 0)
+            return Unauthorized();
+            
+        var result = await _predictionService.GetPracticePlanAsync(userId);
         return Ok(result);
     }
 }

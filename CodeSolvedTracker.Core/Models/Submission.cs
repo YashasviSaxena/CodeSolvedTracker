@@ -12,4 +12,8 @@ public class Submission
     public string Status { get; set; } = string.Empty;
     public int? RuntimeMs { get; set; }
     public int? MemoryUsageMb { get; set; }
+    
+    // Foreign key to User
+    public int UserId { get; set; }
+    public User? User { get; set; }
 }

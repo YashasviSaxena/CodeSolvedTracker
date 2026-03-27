@@ -8,6 +8,7 @@ public class AppDbContext : DbContext
     public AppDbContext(DbContextOptions<AppDbContext> options) : base(options) { }
     
     public DbSet<Submission> Submissions { get; set; }
+    public DbSet<User> Users { get; set; }
     
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -18,5 +19,21 @@ public class AppDbContext : DbContext
             
         modelBuilder.Entity<Submission>()
             .HasIndex(s => s.ProblemCategory);
+            
+        // Configure User-Submission relationship
+        modelBuilder.Entity<Submission>()
+            .HasOne(s => s.User)
+            .WithMany(u => u.Submissions)
+            .HasForeignKey(s => s.UserId)
+            .OnDelete(DeleteBehavior.Cascade);
+            
+        // Unique constraint on Username and Email
+        modelBuilder.Entity<User>()
+            .HasIndex(u => u.Username)
+            .IsUnique();
+            
+        modelBuilder.Entity<User>()
+            .HasIndex(u => u.Email)
+            .IsUnique();
     }
 }
