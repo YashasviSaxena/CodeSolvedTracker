@@ -1,0 +1,27 @@
+﻿# Build outputs
+bin/
+obj/
+publish/
+
+# Database files
+*.db
+*.db-shm
+*.db-wal
+
+# IDE files
+.vs/
+.vscode/
+*.user
+*.suo
+*.slnx
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+logs/
+
+# Test results
+TestResults/
