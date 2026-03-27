@@ -7,24 +7,24 @@ COPY ["CodeSolvedTracker.Core/CodeSolvedTracker.Core.csproj", "CodeSolvedTracker
 COPY ["CodeSolvedTracker.Infrastructure/CodeSolvedTracker.Infrastructure.csproj", "CodeSolvedTracker.Infrastructure/"]
 COPY ["CodeSolvedTracker.DataCollector/CodeSolvedTracker.DataCollector.csproj", "CodeSolvedTracker.DataCollector/"]
 
+# Restore all projects
 RUN dotnet restore "CodeSolvedTracker.API/CodeSolvedTracker.API.csproj"
+RUN dotnet restore "CodeSolvedTracker.DataCollector/CodeSolvedTracker.DataCollector.csproj"
 
+# Copy all source code
 COPY . .
 
 # Publish API
 WORKDIR "/src/CodeSolvedTracker.API"
-RUN dotnet publish "CodeSolvedTracker.API.csproj" -c Release -o /app/api
+RUN dotnet publish "CodeSolvedTracker.API.csproj" -c Release -o /app/api --no-restore
 
 # Publish DataCollector
 WORKDIR "/src/CodeSolvedTracker.DataCollector"
-RUN dotnet publish "CodeSolvedTracker.DataCollector.csproj" -c Release -o /app/datacollector
+RUN dotnet publish "CodeSolvedTracker.DataCollector.csproj" -c Release -o /app/datacollector --no-restore
 
 # Runtime stage
 FROM mcr.microsoft.com/dotnet/aspnet:10.0 AS runtime
 WORKDIR /app
-
-# Install SQLite command line tools
-RUN apt-get update && apt-get install -y sqlite3
 
 # Create data directory
 RUN mkdir -p /app/data
@@ -33,9 +33,18 @@ RUN mkdir -p /app/data
 COPY --from=build /app/api ./api
 COPY --from=build /app/datacollector ./datacollector
 
-# Copy startup script
-COPY startup.sh .
-RUN chmod +x startup.sh
+# Create startup script
+RUN echo '#!/bin/bash\n\
+echo "=== Starting Code Solved Tracker ===\n\
+\n\
+# Run DataCollector to seed database\n\
+cd /app/datacollector\n\
+dotnet CodeSolvedTracker.DataCollector.dll\n\
+\n\
+# Start API\n\
+cd /app/api\n\
+dotnet CodeSolvedTracker.API.dll\n\
+' > /app/start.sh && chmod +x /app/start.sh
 
-# Run startup script
-CMD ["./startup.sh"]
+# Start the application
+CMD ["/app/start.sh"]
