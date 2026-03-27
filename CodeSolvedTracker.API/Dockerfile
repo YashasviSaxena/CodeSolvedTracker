@@ -10,7 +10,7 @@ COPY ["CodeSolvedTracker.DataCollector/CodeSolvedTracker.DataCollector.csproj", 
 # Restore
 RUN dotnet restore "CodeSolvedTracker.API/CodeSolvedTracker.API.csproj"
 
-# Copy all source
+# Copy all source code
 COPY . .
 
 # Publish API
@@ -21,19 +21,25 @@ RUN dotnet publish "CodeSolvedTracker.API.csproj" -c Release -o /app/publish
 WORKDIR "/src/CodeSolvedTracker.DataCollector"
 RUN dotnet publish "CodeSolvedTracker.DataCollector.csproj" -c Release -o /app/datacollector
 
-# Runtime stage
+# Create runtime stage
 FROM mcr.microsoft.com/dotnet/aspnet:10.0 AS runtime
 WORKDIR /app
 
-# Copy both published apps
+# Create data directory
+RUN mkdir -p /app/data
+
+# Copy published apps
 COPY --from=build /app/publish ./api
 COPY --from=build /app/datacollector ./datacollector
 
-# Copy seed script
-COPY seed-database.sh .
+# Set working directory for seed
+WORKDIR /app/datacollector
 
-# Make script executable
-RUN chmod +x seed-database.sh
+# Run DataCollector to seed the database
+RUN dotnet CodeSolvedTracker.DataCollector.dll || true
 
-# Run seed script then start API
-CMD ./seed-database.sh && cd api && dotnet CodeSolvedTracker.API.dll
+# Switch back to API directory
+WORKDIR /app/api
+
+# Start the API
+CMD ["dotnet", "CodeSolvedTracker.API.dll"]
