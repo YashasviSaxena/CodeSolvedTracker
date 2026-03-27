@@ -1,28 +1,88 @@
-﻿services:
+﻿# 📊 Code Solved Tracker - AI-Powered Coding Practice Analytics
+
+[![GitHub stars](https://img.shields.io/github/stars/YashasviSaxena/CodeSolvedTracker)](https://github.com/YashasviSaxena/CodeSolvedTracker/stargazers)
+[![MIT License](https://img.shields.io/badge/License-MIT-green.svg)](https://opensource.org/licenses/MIT)
+
+## 🎯 Project Overview
+A full-stack application that tracks coding practice and uses **ML.NET AI** to identify skill gaps and generate personalized practice plans.
+
+## 📊 Live Demo
+- **API Swagger:** http://localhost:5173/swagger
+- **Dashboard:** Open `CodeSolvedTracker.Frontend/wwwroot/index.html`
+
+## 📈 Current Stats
+
+### Performance by Category
+| Category | Solved | Success Rate | Status |
+|----------|--------|--------------|---------|
+| Linked Lists | 111 | 100% | ✅ Strong |
+| Strings | 107 | 100% | ✅ Strong |
+| Hash Tables | 105 | 100% | ✅ Strong |
+| Arrays | 102 | 100% | ✅ Strong |
+| Trees | 100 | 100% | ✅ Strong |
+| Graphs | 90 | 90% | ⚠️ Needs Work |
+| **DP** | **43** | **43%** | **❌ Weakest** |
+
+## 🤖 AI-Powered Insights
+The ML.NET model analyzes your performance and identifies:
+- **Weakest Area:** Dynamic Programming (43% success rate)
+- **Gap Score:** 77% improvement needed
+- **Recommendation:** Focus on DP patterns: Fibonacci, Knapsack, LCS
+- **Practice Plan:** 5 customized DP problems with difficulty levels
+
+## 🛠️ Tech Stack
+- **Backend:** ASP.NET Core 10, Entity Framework Core, SQLite
+- **AI/ML:** ML.NET for skill prediction
+- **Frontend:** HTML/CSS/JS, Bootstrap
+- **Database:** SQLite with 658+ submissions
+
+## 🚀 Quick Start
+
+### 1. Run the API
+```bash
+cd CodeSolvedTracker.API
+dotnet run
+cd C:\Users\hp\OneDrive\Desktop\Yashasvi\NetPractice\CodeSolvedTracker
+
+@'
+services:
+  # API Service - ASP.NET Core Backend
   - type: web
     name: codetracker-api
     runtime: dotnet
-    buildCommand: dotnet publish CodeSolvedTracker.API/CodeSolvedTracker.API.csproj -c Release -o publish
+    repo: https://github.com/YashasviSaxena/CodeSolvedTracker
+    plan: free
+    buildCommand: |
+      dotnet restore
+      dotnet publish CodeSolvedTracker.API/CodeSolvedTracker.API.csproj -c Release -o publish
     startCommand: dotnet publish/CodeSolvedTracker.API.dll
     envVars:
       - key: ASPNETCORE_ENVIRONMENT
         value: Production
-      - key: ConnectionStrings__DefaultConnection
-        fromDatabase:
-          name: codetracker-db
-          property: connectionString
+      - key: ASPNETCORE_URLS
+        value: http://0.0.0.0:10000
+    healthCheckPath: /health
 
+  # Frontend Dashboard - Static Site
   - type: web
     name: codetracker-dashboard
     runtime: static
-    buildCommand: echo "Static site"
+    repo: https://github.com/YashasviSaxena/CodeSolvedTracker
+    plan: free
+    buildCommand: echo "Static site - no build needed"
     staticPublishPath: ./CodeSolvedTracker.Frontend/wwwroot
+    headers:
+      - path: /*
+        name: Cache-Control
+        value: no-cache
     routes:
       - type: rewrite
         source: /*
         destination: /index.html
 
-databases:
-  - name: codetracker-db
+  # Database - PostgreSQL (for production)
+  - type: pgsql
+    name: codetracker-db
+    plan: free
     databaseName: codingtracker
     user: codetracker
