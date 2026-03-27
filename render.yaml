@@ -1,19 +1,16 @@
 ﻿services:
-  # API Service - ASP.NET Core Backend
+  # API Service - Using Docker
   - type: web
     name: codetracker-api
-    runtime: dotnet
+    runtime: image
     plan: free
-    buildCommand: |
-      dotnet restore
-      dotnet publish CodeSolvedTracker.API/CodeSolvedTracker.API.csproj -c Release -o publish
-    startCommand: dotnet publish/CodeSolvedTracker.API.dll
+    dockerfilePath: ./CodeSolvedTracker.API/Dockerfile
+    dockerContext: .
     envVars:
       - key: ASPNETCORE_ENVIRONMENT
         value: Production
       - key: ASPNETCORE_URLS
         value: http://0.0.0.0:10000
-    healthCheckPath: /health
 
   # Frontend Dashboard - Static Site
   - type: web

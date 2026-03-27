@@ -5,11 +5,11 @@ using CodeSolvedTracker.Infrastructure.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Simple database setup
+// Add services
 builder.Services.AddDbContext<AppDbContext>(options =>
-    options.UseSqlite("Data Source=codingtracker.db"));
+    options.UseSqlite("Data Source=/app/data/codingtracker.db"));
 
-// Simple CORS - allow everything for testing
+// Configure CORS
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowAll", policy =>
@@ -20,7 +20,6 @@ builder.Services.AddCors(options =>
     });
 });
 
-// Register services
 builder.Services.AddScoped<ISubmissionRepository, SubmissionRepository>();
 builder.Services.AddScoped<IPredictionService, PredictionService>();
 
@@ -30,7 +29,15 @@ builder.Services.AddSwaggerGen();
 
 var app = builder.Build();
 
-// Create database
+// Ensure database directory exists
+var dbPath = Path.Combine("/app/data", "codingtracker.db");
+var dbDir = Path.GetDirectoryName(dbPath);
+if (!Directory.Exists(dbDir))
+{
+    Directory.CreateDirectory(dbDir);
+}
+
+// Ensure database is created
 using (var scope = app.Services.CreateScope())
 {
     var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
@@ -38,14 +45,18 @@ using (var scope = app.Services.CreateScope())
 }
 
 // Configure pipeline
-app.UseSwagger();
-app.UseSwaggerUI();
+if (app.Environment.IsDevelopment())
+{
+    app.UseSwagger();
+    app.UseSwaggerUI();
+}
+
 app.UseCors("AllowAll");
 app.UseAuthorization();
 app.MapControllers();
 
-// Configure for Render.com
+// For Render.com - use the PORT environment variable
 var port = Environment.GetEnvironmentVariable("PORT") ?? "10000";
 app.Urls.Add($"http://0.0.0.0:{port}");
-app.Run();
 
+app.Run();
