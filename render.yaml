@@ -1,0 +1,28 @@
+﻿services:
+  - type: web
+    name: codetracker-api
+    runtime: dotnet
+    buildCommand: dotnet publish CodeSolvedTracker.API/CodeSolvedTracker.API.csproj -c Release -o publish
+    startCommand: dotnet publish/CodeSolvedTracker.API.dll
+    envVars:
+      - key: ASPNETCORE_ENVIRONMENT
+        value: Production
+      - key: ConnectionStrings__DefaultConnection
+        fromDatabase:
+          name: codetracker-db
+          property: connectionString
+
+  - type: web
+    name: codetracker-dashboard
+    runtime: static
+    buildCommand: echo "Static site"
+    staticPublishPath: ./CodeSolvedTracker.Frontend/wwwroot
+    routes:
+      - type: rewrite
+        source: /*
+        destination: /index.html
+
+databases:
+  - name: codetracker-db
+    databaseName: codingtracker
+    user: codetracker
