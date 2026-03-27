@@ -6,7 +6,7 @@ namespace CodeSolvedTracker.Frontend.Services;
 public class ApiService
 {
     private readonly HttpClient _http;
-    private const string ApiBaseUrl = "http://localhost:5173";
+    private const string ApiBaseUrl = "https://codesolvedtracker.onrender.com";
     
     public ApiService(HttpClient http)
     {
@@ -18,10 +18,13 @@ public class ApiService
         try
         {
             var url = $"{ApiBaseUrl}/api/stats/dashboard";
-            return await _http.GetFromJsonAsync<DashboardData>(url) ?? new DashboardData();
+            Console.WriteLine($"Calling: {url}");
+            var response = await _http.GetFromJsonAsync<DashboardData>(url);
+            return response ?? new DashboardData();
         }
-        catch
+        catch (Exception ex)
         {
+            Console.WriteLine($"Error: {ex.Message}");
             return new DashboardData();
         }
     }
@@ -31,10 +34,12 @@ public class ApiService
         try
         {
             var url = $"{ApiBaseUrl}/api/predictions/skill-gap";
-            return await _http.GetFromJsonAsync<SkillGap>(url) ?? new SkillGap();
+            var response = await _http.GetFromJsonAsync<SkillGap>(url);
+            return response ?? new SkillGap();
         }
-        catch
+        catch (Exception ex)
         {
+            Console.WriteLine($"Error: {ex.Message}");
             return new SkillGap();
         }
     }
@@ -44,10 +49,12 @@ public class ApiService
         try
         {
             var url = $"{ApiBaseUrl}/api/predictions/practice-plan";
-            return await _http.GetFromJsonAsync<PracticePlan>(url) ?? new PracticePlan();
+            var response = await _http.GetFromJsonAsync<PracticePlan>(url);
+            return response ?? new PracticePlan();
         }
-        catch
+        catch (Exception ex)
         {
+            Console.WriteLine($"Error: {ex.Message}");
             return new PracticePlan();
         }
     }
