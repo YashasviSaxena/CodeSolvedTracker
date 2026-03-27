@@ -81,13 +81,16 @@
     </div>
 
     <script>
-        // UPDATED: Using your live Render API URL
+        // LIVE API URL - Replace with your actual Render API URL
         const apiUrl = 'https://codesolvedtracker.onrender.com';
         
         async function loadDashboard() {
             try {
                 console.log('Calling API:', apiUrl + '/api/stats/dashboard');
                 const response = await fetch(apiUrl + '/api/stats/dashboard');
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}`);
+                }
                 const data = await response.json();
                 
                 document.getElementById('totalSolved').innerHTML = data.totalSolved;
@@ -126,7 +129,7 @@
                 document.getElementById('skillGap').innerHTML = skillHtml;
                 
                 let activityHtml = '<table class="table table-striped">';
-                activityHtml += '<thead>乳<th>Problem</th><th>Date</th><th>Status</th></thead><tbody>';
+                activityHtml += '<thead><tr><th>Problem</th><th>Date</th><th>Status</th></tr></thead><tbody>';
                 for (let act of data.recentActivity.slice(0, 10)) {
                     let statusClass = act.status === 'Accepted' ? 'badge bg-success' : 'badge bg-danger';
                     let date = new Date(act.solvedAt).toLocaleString();
@@ -141,7 +144,7 @@
                 
             } catch (error) {
                 console.error('Error:', error);
-                document.getElementById('categories').innerHTML = '<div class="alert alert-danger">⚠️ Cannot connect to API. Make sure it\'s running at ' + apiUrl + '</div>';
+                document.getElementById('categories').innerHTML = '<div class="alert alert-danger">⚠️ Cannot connect to API: ' + apiUrl + '</div>';
                 document.getElementById('skillGap').innerHTML = '<div class="alert alert-danger">⚠️ API connection failed</div>';
                 document.getElementById('recentActivity').innerHTML = '<div class="alert alert-danger">⚠️ Cannot load activity data</div>';
             }
@@ -169,7 +172,7 @@
                     problemsHtml +
                     '</div>';
             } catch (error) {
-                alert('Error loading practice plan. Make sure API is running.');
+                alert('Error loading practice plan: ' + error.message);
             }
         }
         
